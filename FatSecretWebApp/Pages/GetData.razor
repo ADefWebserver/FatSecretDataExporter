@@ -185,7 +185,7 @@
             api.GetAccessToken(strOauthTokenSecret, strRequestToken, AuthCode, out UserToken, out AuthSecret);
             GetProfile();
         }
-        catch (Exception ex)
+        catch
         {
             ErrorMesage = $"Bad code entered!";
         }
