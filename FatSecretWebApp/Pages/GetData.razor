@@ -1,0 +1,409 @@
+﻿@page "/getdata"
+@inject IJSRuntime JsRuntime;
+@inject IConfiguration Configuration
+@using System.Text.Json;
+@using System.Text
+@using System.Text.Json.Serialization;
+@using fatsecret.platform.FatSecretExercise;
+@using fatsecret.platform.FatSecretFood;
+@using fatsecret.platform.FatSecretWeight;
+
+<h4>@ErrorMesage</h4>
+@if ((strRequestToken != "") && (AuthSecret == ""))
+{
+    <a target="_blank" href="https://www.fatsecret.com/oauth/authorize?oauth_token=@strRequestToken">
+        <u>Click here to get Auth Code to enter below</u>
+    </a>
+
+    <br />
+    <br />
+
+    <input placeholder="Enter Auth Code" @bind="AuthCode" />
+    <RadzenButton ButtonStyle="ButtonStyle.Success"
+                  Click="GetAccessToken" Text="Authorize Application" />
+}
+
+@if (objFatSecretProfile != null)
+{
+    <br />
+    <b>Goal Weight: </b> @String.Format("{0:00}", Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretProfile.profile.goal_weight_kg)))
+    <b> Last Weight: </b> @String.Format("{0:00}", Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretProfile.profile.last_weight_kg)))
+    <b> Last Weight Date: </b> @FatSecretUtility.GetDateFromFatSecretDay(objFatSecretProfile.profile.last_weight_date_int)
+}
+<br />
+<br />
+<br />
+@if (AuthSecret != "")
+{
+    <RadzenTabs>
+        <Tabs>
+            <RadzenTabsItem Text="Weight">
+                @if (ShowGetWeightButton)
+                {
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                                  Click="GetWeight" Text="Get Weight  (click once and wait)" /><br /><br />
+                }
+                <RadzenGrid AllowFiltering="true" AllowPaging="true" PageSize="12" AllowSorting="true"
+                            Data="colFatSecretWeightOutput" TItem="FatSecretWeightOutput" ColumnWidth="200px">
+                    <Columns>
+                        <RadzenGridColumn TItem="FatSecretWeightOutput" Property="Date" Title="Date">
+                            <Template Context="data">
+                                @String.Format("{0:d}", data.Date)
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="FatSecretWeightOutput" Property="Weight" Title="Weight">
+                            <Template Context="data">
+                                @String.Format("{0:00}", data.Weight)
+                            </Template>
+                        </RadzenGridColumn>
+                    </Columns>
+                </RadzenGrid>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Exercise">
+                @if (ShowGetExerciseButton)
+                {
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                                  Click="GetExercise" Text="Get Exercise   (click once and wait)" /><br /><br />
+                }
+                <RadzenGrid AllowFiltering="true" AllowPaging="true" PageSize="12" AllowSorting="true"
+                            Data="colFatSecretExerciseOutput" TItem="FatSecretExerciseOutput" ColumnWidth="200px">
+                    <Columns>
+                        <RadzenGridColumn TItem="FatSecretExerciseOutput" Property="Date" Title="Date">
+                            <Template Context="data">
+                                @String.Format("{0:d}", data.Date)
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="FatSecretExerciseOutput" Property="Calories" Title="Calories">
+                            <Template Context="data">
+                                @String.Format("{0:00}", data.calories)
+                            </Template>
+                        </RadzenGridColumn>
+                    </Columns>
+                </RadzenGrid>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Food">
+                @if (ShowGetFoodButton)
+                {
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                                  Click="GetFood" Text="Get Food   (click once and wait)" /><br /><br />
+                }
+                <RadzenGrid AllowFiltering="true" AllowPaging="true" PageSize="12" AllowSorting="true"
+                            Data="colFatSecretFoodOutput" TItem="FatSecretFoodOutput" ColumnWidth="200px">
+                    <Columns>
+                        <RadzenGridColumn TItem="FatSecretFoodOutput" Property="Date" Title="Date">
+                            <Template Context="data">
+                                @String.Format("{0:d}", data.Date)
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="FatSecretFoodOutput" Property="calories" Title="Calories">
+                            <Template Context="data">
+                                @String.Format("{0:00}", data.calories)
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="FatSecretFoodOutput" Property="carbohydrate" Title="Carbohydrates">
+                            <Template Context="data">
+                                @String.Format("{0:00}", data.carbohydrate)
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="FatSecretFoodOutput" Property="fat" Title="Fats">
+                            <Template Context="data">
+                                @String.Format("{0:00}", data.fat)
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="FatSecretFoodOutput" Property="protein" Title="Proteins">
+                            <Template Context="data">
+                                @String.Format("{0:00}", data.protein)
+                            </Template>
+                        </RadzenGridColumn>
+                    </Columns>
+                </RadzenGrid>
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+}
+<br />
+@code {
+    public string ErrorMesage = "";
+    public string ConsumerKey = "";
+    public string ConsumerSecret = "";
+    public string strRequestToken = "";
+    public string strOauthTokenSecret = "";
+    public string AuthCode = "";
+    public string AuthToken = "";
+    public string AuthSecret = "";
+    public string UserToken = "";
+    public string response = "";
+
+    public FatSecretProfile objFatSecretProfile;
+    public FatSecretWeight objFatSecretWeight;
+    public FatSecretWeightSingle objFatSecretWeightSingle;
+
+    public FatSecretFood objFatSecretFood;
+    public FatSecretFoodSingle objFatSecretFoodSingle;
+
+    public FatSecretExercise objFatSecretExercise;
+    public FatSecretExerciseSingle objFatSecretExerciseSingle;
+
+    DateTime dtStartDate;
+
+    bool ShowGetWeightButton = true;
+    public List<FatSecretWeightOutput> colFatSecretWeightOutput = new List<FatSecretWeightOutput>();
+    bool ShowGetFoodButton = true;
+    public List<FatSecretFoodOutput> colFatSecretFoodOutput = new List<FatSecretFoodOutput>();
+    bool ShowGetExerciseButton = true;
+    public List<FatSecretExerciseOutput> colFatSecretExerciseOutput = new List<FatSecretExerciseOutput>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ConsumerKey = Configuration["ConsumerKey"];
+        ConsumerSecret = Configuration["ConsumerSecret"];
+        DateTime.TryParse("1/1/2018", out dtStartDate);
+
+        response = "";
+        // Obtaining a Request Token
+        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
+        api.GetAuthToken(out strRequestToken, out strOauthTokenSecret);
+        await Task.CompletedTask;
+    }
+
+    void GetRequestToken()
+    {
+        response = "";
+        // Obtaining a Request Token
+        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
+        api.GetAuthToken(out strRequestToken, out strOauthTokenSecret);
+    }
+
+    void GetAccessToken()
+    {
+        ErrorMesage = "";
+        try
+        {
+            // Obtaining an Access Token (after user entered AuthCode by clicked link to Obtain a User Authorization Token)
+            // This retuns the *AuthSecret*
+            FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
+            api.GetAccessToken(strOauthTokenSecret, strRequestToken, AuthCode, out UserToken, out AuthSecret);
+            GetProfile();
+        }
+        catch (Exception ex)
+        {
+            ErrorMesage = $"Bad code entered!";
+        }
+    }
+
+    void GetProfile()
+    {
+        response = "";
+        // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=profile.get
+        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
+        api.GetProfile(UserToken, AuthSecret, out response);
+
+        objFatSecretProfile = new FatSecretProfile();
+        objFatSecretProfile.profile = new Profile();
+        objFatSecretProfile.profile.last_weight_kg = "0";
+        objFatSecretProfile.profile.goal_weight_kg = "0";
+        objFatSecretProfile.profile.last_weight_date_int = "0";
+
+        try
+        {
+            objFatSecretProfile = JsonSerializer.Deserialize<FatSecretProfile>(response);
+        }
+        catch { }
+    }
+
+    async Task GetWeight()
+    {
+        ShowGetWeightButton = false;
+
+        // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=weights.get_month
+        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
+
+        List<string> colCollection = new List<string>();
+        colCollection.Add("Date,WeightP,WeightK\r\n");
+
+        DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
+        while (currentDate <= DateTime.Now)
+        {
+            int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+
+            api.GetWeight(UserToken, AuthSecret, FatSecretDate, out response);
+
+            try
+            {
+                objFatSecretWeight = JsonSerializer.Deserialize<FatSecretWeight>(response);
+                foreach (var item in objFatSecretWeight.month.day)
+                {
+                    colFatSecretWeightOutput.Add(new FatSecretWeightOutput
+                    {
+                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                        Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(item.weight_kg))
+                    });
+
+                    colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
+                        $"{FatSecretUtility.GetPoundsFromKilos(item.weight_kg)}," +
+                        $"{item.weight_kg}\r\n");
+                }
+            }
+            catch
+            {
+                objFatSecretWeightSingle = JsonSerializer.Deserialize<FatSecretWeightSingle>(response);
+                if (objFatSecretWeightSingle.month.day != null)
+                {
+                    colFatSecretWeightOutput.Add(new FatSecretWeightOutput
+                    {
+                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)),
+                        Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretWeightSingle.month.day.weight_kg))
+                    });
+
+                    colCollection.Add($"" +
+                        $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)}," +
+                        $"{FatSecretUtility.GetPoundsFromKilos(objFatSecretWeightSingle.month.day.weight_kg)}," +
+                        $"{objFatSecretWeightSingle.month.day.weight_kg}\r\n");
+                }
+            }
+
+            currentDate = currentDate.AddMonths(1);
+        }
+
+        response = string.Join("", colCollection);
+        await ExportData("Weight", response);
+    }
+
+    async Task GetExercise()
+    {
+        ShowGetExerciseButton = false;
+
+        // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=exercise_entries.get_month
+        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
+
+        List<string> colCollection = new List<string>();
+        colCollection.Add("Date,Calories\r\n");
+
+        DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
+        while (currentDate <= DateTime.Now)
+        {
+            int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+
+            api.GetExercise(UserToken, AuthSecret, FatSecretDate, out response);
+
+            try
+            {
+                objFatSecretExercise = JsonSerializer.Deserialize<FatSecretExercise>(response);
+                foreach (var item in objFatSecretExercise.month.day)
+                {
+                    colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
+                    {
+                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                        calories = Convert.ToDouble(item.calories)
+                    });
+
+                    colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)},{item.calories}\r\n");
+                }
+            }
+            catch
+            {
+                objFatSecretExerciseSingle = JsonSerializer.Deserialize<FatSecretExerciseSingle>(response);
+                if (objFatSecretExerciseSingle.month.day != null)
+                {
+                    colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
+                    {
+                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)),
+                        calories = Convert.ToDouble(objFatSecretExerciseSingle.month.day.calories)
+                    });
+
+                    colCollection.Add($"" +
+                        $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)}," +
+                        $"{objFatSecretExerciseSingle.month.day.calories}\r\n");
+                }
+            }
+
+            currentDate = currentDate.AddMonths(1);
+        }
+
+        response = string.Join("", colCollection);
+        await ExportData("Exercise", response);
+    }
+
+    async Task GetFood()
+    {
+        ShowGetFoodButton = false;
+
+        // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=food_entries.get_month
+        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
+
+        List<string> colCollection = new List<string>();
+        colCollection.Add("Date,Calories,Carbohydrates,Fats,Proteins\r\n");
+
+        DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
+        while (currentDate <= DateTime.Now)
+        {
+            int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+
+            api.GetFood(UserToken, AuthSecret, FatSecretDate, out response);
+
+            try
+            {
+                objFatSecretFood = JsonSerializer.Deserialize<FatSecretFood>(response);
+                foreach (var item in objFatSecretFood.month.day)
+                {
+                    colFatSecretFoodOutput.Add(new FatSecretFoodOutput
+                    {
+                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                        calories = Convert.ToDouble(item.calories),
+                        carbohydrate = Convert.ToDouble(item.carbohydrate),
+                        fat = Convert.ToDouble(item.fat),
+                        protein = Convert.ToDouble(item.protein)
+                    });
+
+                    colCollection.Add(
+                        $"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
+                        $"{item.calories},{item.carbohydrate},{item.fat},{item.protein}\r\n");
+                }
+            }
+            catch
+            {
+                objFatSecretFoodSingle = JsonSerializer.Deserialize<FatSecretFoodSingle>(response);
+                if (objFatSecretFoodSingle.month.day != null)
+                {
+                    colFatSecretFoodOutput.Add(new FatSecretFoodOutput
+                    {
+                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)),
+                        calories = Convert.ToDouble(objFatSecretFoodSingle.month.day.calories),
+                        carbohydrate = Convert.ToDouble(objFatSecretFoodSingle.month.day.carbohydrate),
+                        fat = Convert.ToDouble(objFatSecretFoodSingle.month.day.fat),
+                        protein = Convert.ToDouble(objFatSecretFoodSingle.month.day.protein)
+                    });
+
+                    colCollection.Add($"" +
+                        $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)}," +
+                        $"{objFatSecretFoodSingle.month.day.calories}," +
+                        $"{objFatSecretFoodSingle.month.day.carbohydrate}," +
+                        $"{objFatSecretFoodSingle.month.day.fat}," +
+                        $"{objFatSecretFoodSingle.month.day.protein}\r\n");
+                }
+            }
+
+            currentDate = currentDate.AddMonths(1);
+        }
+
+        response = string.Join("", colCollection);
+        await ExportData("Food", response);
+    }
+
+    // Utility
+
+    public async Task ExportData(string FileName, string data)
+    {
+        string strFinalFileName = $"{FileName}-" +
+                $"{DateTime.Now.ToShortDateString().Replace(@"/", "-")}-" +
+                $"{DateTime.Now.ToShortTimeString().Replace(@":", "").Replace(@"AM", "").Replace(@"PM", "")}".Trim() +
+                ".csv";
+
+        byte[] bytes = Encoding.ASCII.GetBytes(data);
+        await JsRuntime.InvokeVoidAsync(
+            "jsFunctions.saveFile",
+            strFinalFileName,
+            bytes,
+            "application/octet-stream");
+    }
+}

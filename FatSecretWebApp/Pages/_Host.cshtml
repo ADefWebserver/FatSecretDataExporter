@@ -1,0 +1,25 @@
+﻿@page "/"
+@namespace FatSecretWebApp.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FatSecretWebApp</title>
+    <base href="~/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+</head>
+<body>
+    <app>
+        @(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
+    </app>
+
+    <script src="_framework/blazor.server.js"></script>
+    <script src="jsFunctions.js"></script>
+</body>
+</html>
