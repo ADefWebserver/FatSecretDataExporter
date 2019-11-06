@@ -177,7 +177,7 @@
 
     void GetAccessToken()
     {
-        ErrorMesage = "";
+        ErrorMesage = "Authorizing application...";
         try
         {
             // Obtaining an Access Token (after user entered AuthCode by clicked link to Obtain a User Authorization Token)
@@ -188,28 +188,32 @@
         }
         catch
         {
-            ErrorMesage = $"Bad code entered!";
+            ErrorMesage = ErrorMesage + $" Bad code entered!";
+            return;
         }
+        ErrorMesage = "";
     }
 
     void GetProfile()
     {
-        response = "";
-        // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=profile.get
-        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
-        api.GetProfile(UserToken, AuthSecret, out response);
-
-        objFatSecretProfile = new FatSecretProfile();
-        objFatSecretProfile.profile = new Profile();
-        objFatSecretProfile.profile.last_weight_kg = "0";
-        objFatSecretProfile.profile.goal_weight_kg = "0";
-        objFatSecretProfile.profile.last_weight_date_int = "0";
-
         try
         {
+            // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=profile.get
+            FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
+            api.GetProfile(UserToken, AuthSecret, out response);
+
+            objFatSecretProfile = new FatSecretProfile();
+            objFatSecretProfile.profile = new Profile();
+            objFatSecretProfile.profile.last_weight_kg = "0";
+            objFatSecretProfile.profile.goal_weight_kg = "0";
+            objFatSecretProfile.profile.last_weight_date_int = "0";
+        
             objFatSecretProfile = JsonSerializer.Deserialize<FatSecretProfile>(response);
         }
-        catch { }
+        catch(Exception ex)
+        {
+            ErrorMesage = ErrorMesage + $"Error: Calling FatSecretProfile - {ex.GetBaseException().Message}";
+        }
     }
 
     async Task GetWeight()
