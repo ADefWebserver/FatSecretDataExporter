@@ -26,9 +26,12 @@
 @if (objFatSecretProfile != null)
 {
     <br />
+    try
+    {
     <b>Goal Weight: </b> @String.Format("{0:00}", Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretProfile.profile.goal_weight_kg)))
     <b> Last Weight: </b> @String.Format("{0:00}", Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretProfile.profile.last_weight_kg)))
     <b> Last Weight Date: </b> @FatSecretUtility.GetDateFromFatSecretDay(objFatSecretProfile.profile.last_weight_date_int)
+    } catch { }
 }
 <br />
 <br />

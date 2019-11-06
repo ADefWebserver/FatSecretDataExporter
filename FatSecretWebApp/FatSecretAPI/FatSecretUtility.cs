@@ -2,7 +2,7 @@ using System;
 
 namespace FatSecretWebApp
 {
-    public static class FatSecretUtility 
+    public static class FatSecretUtility
     {
         public static int GetFatSecretDate(DateTime dtparamDate)
         {
@@ -16,11 +16,14 @@ namespace FatSecretWebApp
         public static string GetDateFromFatSecretDay(string strFatSecretDate)
         {
             DateTime dtFatSecretDate = new DateTime();
-            DateTime dtFatSecretStartDate;
-            DateTime.TryParse("1/1/1970", out dtFatSecretStartDate);
+            try
+            {
+                DateTime dtFatSecretStartDate;
+                DateTime.TryParse("1/1/1970", out dtFatSecretStartDate);
 
-            dtFatSecretDate = dtFatSecretStartDate.AddDays(Convert.ToInt32(strFatSecretDate));
-
+                dtFatSecretDate = dtFatSecretStartDate.AddDays(Convert.ToInt32(strFatSecretDate));
+            }
+            catch { }
             return dtFatSecretDate.ToShortDateString();
         }
 
@@ -31,9 +34,12 @@ namespace FatSecretWebApp
             try
             {
                 dblKilos = Convert.ToDouble(paramKilos);
+                pounds = (dblKilos * 2.20462262185).ToString();
             }
-            catch { }
-            pounds = (dblKilos * 2.20462262185).ToString();
+            catch
+            {
+                pounds = "";
+            }
             return pounds.ToString();
         }
     }
