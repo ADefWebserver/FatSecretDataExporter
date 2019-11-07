@@ -217,7 +217,7 @@
         }
         catch (Exception ex)
         {
-            ErrorMesage = ErrorMesage + $"Error: Calling FatSecretProfile - {ex.GetBaseException().Message}";
+            ErrorMesage = ErrorMesage + $"Error: Calling FatSecretProfile - {ex.GetBaseException().Message}" + $" - {response}";
         }
     }
 
