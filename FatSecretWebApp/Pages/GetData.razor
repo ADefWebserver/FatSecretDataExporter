@@ -23,21 +23,6 @@
                   Click="GetAccessToken" Text="Authorize Application" />
 }
 
-@if (objFatSecretProfile != null)
-{
-    <br />
-    try
-    {
-    <b>Goal Weight: </b> @String.Format("{0:00}", Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretProfile.profile.goal_weight_kg)))
-    <b> Last Weight: </b> @String.Format("{0:00}", Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretProfile.profile.last_weight_kg)))
-    <b> Last Weight Date: </b> @FatSecretUtility.GetDateFromFatSecretDay(objFatSecretProfile.profile.last_weight_date_int)
-    }
-    catch(Exception ex)
-    {
-        ErrorMesage = ex.GetBaseException().Message;
-    }
-}
-<br />
 <br />
 <br />
 @if (AuthSecret != "")
@@ -193,7 +178,7 @@
             api.GetAccessToken(strOauthTokenSecret, strRequestToken, AuthCode, out UserToken, out AuthSecret);
             GetProfile();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             ErrorMesage = ErrorMesage + $" Bad code entered!- {ex.GetBaseException().Message}.";
             return;
@@ -214,10 +199,10 @@
             objFatSecretProfile.profile.last_weight_kg = "0";
             objFatSecretProfile.profile.goal_weight_kg = "0";
             objFatSecretProfile.profile.last_weight_date_int = "0";
-        
+
             objFatSecretProfile = JsonSerializer.Deserialize<FatSecretProfile>(response);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             ErrorMesage = ErrorMesage + $"Error: Calling FatSecretProfile - {ex.GetBaseException().Message}";
         }
@@ -225,181 +210,202 @@
 
     async Task GetWeight()
     {
-        ShowGetWeightButton = false;
-
-        // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=weights.get_month
-        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
-
-        List<string> colCollection = new List<string>();
-        colCollection.Add("Date,WeightP,WeightK\r\n");
-
-        DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
-        while (currentDate <= DateTime.Now)
+        try
         {
-            int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+            ShowGetWeightButton = false;
 
-            api.GetWeight(UserToken, AuthSecret, FatSecretDate, out response);
+            // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=weights.get_month
+            FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
 
-            try
+            List<string> colCollection = new List<string>();
+            colCollection.Add("Date,WeightP,WeightK\r\n");
+
+            DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
+            while (currentDate <= DateTime.Now)
             {
-                objFatSecretWeight = JsonSerializer.Deserialize<FatSecretWeight>(response);
-                foreach (var item in objFatSecretWeight.month.day)
+                int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+
+                api.GetWeight(UserToken, AuthSecret, FatSecretDate, out response);
+
+                try
                 {
-                    colFatSecretWeightOutput.Add(new FatSecretWeightOutput
+                    objFatSecretWeight = JsonSerializer.Deserialize<FatSecretWeight>(response);
+                    foreach (var item in objFatSecretWeight.month.day)
                     {
-                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
-                        Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(item.weight_kg))
-                    });
+                        colFatSecretWeightOutput.Add(new FatSecretWeightOutput
+                        {
+                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                            Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(item.weight_kg))
+                        });
 
-                    colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
-                        $"{FatSecretUtility.GetPoundsFromKilos(item.weight_kg)}," +
-                        $"{item.weight_kg}\r\n");
+                        colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
+                            $"{FatSecretUtility.GetPoundsFromKilos(item.weight_kg)}," +
+                            $"{item.weight_kg}\r\n");
+                    }
                 }
-            }
-            catch
-            {
-                objFatSecretWeightSingle = JsonSerializer.Deserialize<FatSecretWeightSingle>(response);
-                if (objFatSecretWeightSingle.month.day != null)
+                catch
                 {
-                    colFatSecretWeightOutput.Add(new FatSecretWeightOutput
+                    objFatSecretWeightSingle = JsonSerializer.Deserialize<FatSecretWeightSingle>(response);
+                    if (objFatSecretWeightSingle.month.day != null)
                     {
-                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)),
-                        Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretWeightSingle.month.day.weight_kg))
-                    });
+                        colFatSecretWeightOutput.Add(new FatSecretWeightOutput
+                        {
+                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)),
+                            Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretWeightSingle.month.day.weight_kg))
+                        });
 
-                    colCollection.Add($"" +
-                        $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)}," +
-                        $"{FatSecretUtility.GetPoundsFromKilos(objFatSecretWeightSingle.month.day.weight_kg)}," +
-                        $"{objFatSecretWeightSingle.month.day.weight_kg}\r\n");
+                        colCollection.Add($"" +
+                            $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)}," +
+                            $"{FatSecretUtility.GetPoundsFromKilos(objFatSecretWeightSingle.month.day.weight_kg)}," +
+                            $"{objFatSecretWeightSingle.month.day.weight_kg}\r\n");
+                    }
                 }
+
+                currentDate = currentDate.AddMonths(1);
             }
 
-            currentDate = currentDate.AddMonths(1);
+            response = string.Join("", colCollection);
+            await ExportData("Weight", response);
         }
-
-        response = string.Join("", colCollection);
-        await ExportData("Weight", response);
+        catch (Exception ex)
+        {
+            ErrorMesage = ex.GetBaseException().Message;
+        }
     }
 
     async Task GetExercise()
     {
-        ShowGetExerciseButton = false;
-
-        // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=exercise_entries.get_month
-        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
-
-        List<string> colCollection = new List<string>();
-        colCollection.Add("Date,Calories\r\n");
-
-        DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
-        while (currentDate <= DateTime.Now)
+        try
         {
-            int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+            ShowGetExerciseButton = false;
 
-            api.GetExercise(UserToken, AuthSecret, FatSecretDate, out response);
+            // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=exercise_entries.get_month
+            FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
 
-            try
+            List<string> colCollection = new List<string>();
+            colCollection.Add("Date,Calories\r\n");
+
+            DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
+            while (currentDate <= DateTime.Now)
             {
-                objFatSecretExercise = JsonSerializer.Deserialize<FatSecretExercise>(response);
-                foreach (var item in objFatSecretExercise.month.day)
+                int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+
+                api.GetExercise(UserToken, AuthSecret, FatSecretDate, out response);
+
+                try
                 {
-                    colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
+                    objFatSecretExercise = JsonSerializer.Deserialize<FatSecretExercise>(response);
+                    foreach (var item in objFatSecretExercise.month.day)
                     {
-                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
-                        calories = Convert.ToDouble(item.calories)
-                    });
+                        colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
+                        {
+                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                            calories = Convert.ToDouble(item.calories)
+                        });
 
-                    colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)},{item.calories}\r\n");
+                        colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)},{item.calories}\r\n");
+                    }
                 }
-            }
-            catch
-            {
-                objFatSecretExerciseSingle = JsonSerializer.Deserialize<FatSecretExerciseSingle>(response);
-                if (objFatSecretExerciseSingle.month.day != null)
+                catch
                 {
-                    colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
+                    objFatSecretExerciseSingle = JsonSerializer.Deserialize<FatSecretExerciseSingle>(response);
+                    if (objFatSecretExerciseSingle.month.day != null)
                     {
-                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)),
-                        calories = Convert.ToDouble(objFatSecretExerciseSingle.month.day.calories)
-                    });
+                        colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
+                        {
+                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)),
+                            calories = Convert.ToDouble(objFatSecretExerciseSingle.month.day.calories)
+                        });
 
-                    colCollection.Add($"" +
-                        $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)}," +
-                        $"{objFatSecretExerciseSingle.month.day.calories}\r\n");
+                        colCollection.Add($"" +
+                            $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)}," +
+                            $"{objFatSecretExerciseSingle.month.day.calories}\r\n");
+                    }
                 }
+
+                currentDate = currentDate.AddMonths(1);
             }
 
-            currentDate = currentDate.AddMonths(1);
+            response = string.Join("", colCollection);
+            await ExportData("Exercise", response);
         }
-
-        response = string.Join("", colCollection);
-        await ExportData("Exercise", response);
+        catch (Exception ex)
+        {
+            ErrorMesage = ex.GetBaseException().Message;
+        }
     }
 
     async Task GetFood()
     {
-        ShowGetFoodButton = false;
-
-        // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=food_entries.get_month
-        FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
-
-        List<string> colCollection = new List<string>();
-        colCollection.Add("Date,Calories,Carbohydrates,Fats,Proteins\r\n");
-
-        DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
-        while (currentDate <= DateTime.Now)
+        try
         {
-            int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+            ShowGetFoodButton = false;
 
-            api.GetFood(UserToken, AuthSecret, FatSecretDate, out response);
+            // https://platform.fatsecret.com/api/Default.aspx?screen=rapiref&method=food_entries.get_month
+            FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
 
-            try
+            List<string> colCollection = new List<string>();
+            colCollection.Add("Date,Calories,Carbohydrates,Fats,Proteins\r\n");
+
+            DateTime currentDate = dtStartDate.Date.AddDays(1 - dtStartDate.Day);
+            while (currentDate <= DateTime.Now)
             {
-                objFatSecretFood = JsonSerializer.Deserialize<FatSecretFood>(response);
-                foreach (var item in objFatSecretFood.month.day)
+                int FatSecretDate = FatSecretUtility.GetFatSecretDate(currentDate);
+
+                api.GetFood(UserToken, AuthSecret, FatSecretDate, out response);
+
+                try
                 {
-                    colFatSecretFoodOutput.Add(new FatSecretFoodOutput
+                    objFatSecretFood = JsonSerializer.Deserialize<FatSecretFood>(response);
+                    foreach (var item in objFatSecretFood.month.day)
                     {
-                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
-                        calories = Convert.ToDouble(item.calories),
-                        carbohydrate = Convert.ToDouble(item.carbohydrate),
-                        fat = Convert.ToDouble(item.fat),
-                        protein = Convert.ToDouble(item.protein)
-                    });
+                        colFatSecretFoodOutput.Add(new FatSecretFoodOutput
+                        {
+                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                            calories = Convert.ToDouble(item.calories),
+                            carbohydrate = Convert.ToDouble(item.carbohydrate),
+                            fat = Convert.ToDouble(item.fat),
+                            protein = Convert.ToDouble(item.protein)
+                        });
 
-                    colCollection.Add(
-                        $"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
-                        $"{item.calories},{item.carbohydrate},{item.fat},{item.protein}\r\n");
+                        colCollection.Add(
+                            $"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
+                            $"{item.calories},{item.carbohydrate},{item.fat},{item.protein}\r\n");
+                    }
                 }
-            }
-            catch
-            {
-                objFatSecretFoodSingle = JsonSerializer.Deserialize<FatSecretFoodSingle>(response);
-                if (objFatSecretFoodSingle.month.day != null)
+                catch
                 {
-                    colFatSecretFoodOutput.Add(new FatSecretFoodOutput
+                    objFatSecretFoodSingle = JsonSerializer.Deserialize<FatSecretFoodSingle>(response);
+                    if (objFatSecretFoodSingle.month.day != null)
                     {
-                        Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)),
-                        calories = Convert.ToDouble(objFatSecretFoodSingle.month.day.calories),
-                        carbohydrate = Convert.ToDouble(objFatSecretFoodSingle.month.day.carbohydrate),
-                        fat = Convert.ToDouble(objFatSecretFoodSingle.month.day.fat),
-                        protein = Convert.ToDouble(objFatSecretFoodSingle.month.day.protein)
-                    });
+                        colFatSecretFoodOutput.Add(new FatSecretFoodOutput
+                        {
+                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)),
+                            calories = Convert.ToDouble(objFatSecretFoodSingle.month.day.calories),
+                            carbohydrate = Convert.ToDouble(objFatSecretFoodSingle.month.day.carbohydrate),
+                            fat = Convert.ToDouble(objFatSecretFoodSingle.month.day.fat),
+                            protein = Convert.ToDouble(objFatSecretFoodSingle.month.day.protein)
+                        });
 
-                    colCollection.Add($"" +
-                        $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)}," +
-                        $"{objFatSecretFoodSingle.month.day.calories}," +
-                        $"{objFatSecretFoodSingle.month.day.carbohydrate}," +
-                        $"{objFatSecretFoodSingle.month.day.fat}," +
-                        $"{objFatSecretFoodSingle.month.day.protein}\r\n");
+                        colCollection.Add($"" +
+                            $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)}," +
+                            $"{objFatSecretFoodSingle.month.day.calories}," +
+                            $"{objFatSecretFoodSingle.month.day.carbohydrate}," +
+                            $"{objFatSecretFoodSingle.month.day.fat}," +
+                            $"{objFatSecretFoodSingle.month.day.protein}\r\n");
+                    }
                 }
+
+                currentDate = currentDate.AddMonths(1);
             }
 
-            currentDate = currentDate.AddMonths(1);
+            response = string.Join("", colCollection);
+            await ExportData("Food", response);
         }
-
-        response = string.Join("", colCollection);
-        await ExportData("Food", response);
+        catch (Exception ex)
+        {
+            ErrorMesage = ex.GetBaseException().Message;
+        }
     }
 
     // Utility
