@@ -425,10 +425,7 @@
 
     public async Task ExportData(string FileName, string data)
     {
-        string strFinalFileName = $"{FileName}-" +
-                $"{DateTime.Now.ToShortDateString().Replace(@"/", "-")}-" +
-                $"{DateTime.Now.ToShortTimeString().Replace(@":", "").Replace(@"AM", "").Replace(@"PM", "")}".Trim() +
-                ".csv";
+        string strFinalFileName = $"{FileName}.csv";
 
         byte[] bytes = Encoding.ASCII.GetBytes(data);
         await JsRuntime.InvokeVoidAsync(
