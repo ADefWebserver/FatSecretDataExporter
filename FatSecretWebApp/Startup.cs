@@ -12,6 +12,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Net.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 
 namespace FatSecretWebApp
 {
@@ -35,6 +39,25 @@ namespace FatSecretWebApp
             services.AddServerSideBlazor()
                 .AddCircuitOptions(options => { options.DetailedErrors = true; });
             services.AddScoped<FatSecretDataService>();
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie();
+            services.AddAuthentication().AddGoogle(options =>
+            {
+                options.ClientId = Configuration["Authentication:Google:ClientId"];
+                options.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
+            });
+            // From: https://github.com/aspnet/Blazor/issues/1554
+            // Adds HttpContextAccessor
+            // Used to determine if a user is logged in
+            // and what their username is
+            services.AddHttpContextAccessor();
+            services.AddScoped<HttpContextAccessor>();
+            // Required for HttpClient support in the Blazor Client project
+            services.AddHttpClient();
+            services.AddScoped<HttpClient>();
+            // Pass settings to other components
+            services.AddSingleton<IConfiguration>(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,6 +76,9 @@ namespace FatSecretWebApp
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.UseCookiePolicy();
+            app.UseAuthentication();
 
             app.UseRouting();
 

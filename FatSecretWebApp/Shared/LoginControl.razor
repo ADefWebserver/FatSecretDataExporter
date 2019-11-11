@@ -1,0 +1,64 @@
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor _httpContextAccessor
+@inject HttpClient Http
+<a href="https://platform.fatsecret.com" style="align-content:center">
+    <img src="https://platform.fatsecret.com/api/static/images/powered_by_fatsecret.png"
+         srcset="https://platform.fatsecret.com/api/static/images/powered_by_fatsecret_2x.png 2x, https://platform.fatsecret.com/api/static/images/powered_by_fatsecret_3x.png 3x"
+         border="0" />
+</a>
+@if (User.Identity.Name != null)
+{
+<span>&nbsp;&nbsp;You are logged in as: <b>@GivenName @Surname</b></span>
+    <a href="/Logout" target="_top">[Logout]</a>
+}
+else
+{
+    <a href="/Login" target="_top">[Login]</a>
+}
+
+@code {
+    private ClaimsPrincipal User;
+    private string GivenName;
+    private string Surname;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        try
+        {
+            // Set the user to determine if they are logged in
+            User = _httpContextAccessor.HttpContext.User;
+
+            // Try to get the GivenName
+            var givenName =
+                _httpContextAccessor.HttpContext.User
+                .FindFirst(ClaimTypes.GivenName);
+
+            if (givenName != null)
+            {
+                GivenName = givenName.Value;
+            }
+            else
+            {
+                GivenName = User.Identity.Name;
+            }
+
+            // Try to get the Surname
+            var surname =
+                _httpContextAccessor.HttpContext.User
+                .FindFirst(ClaimTypes.Surname);
+
+            if (surname != null)
+            {
+                Surname = surname.Value;
+            }
+            else
+            {
+                Surname = "";
+            }
+        }
+        catch { }
+    }
+}

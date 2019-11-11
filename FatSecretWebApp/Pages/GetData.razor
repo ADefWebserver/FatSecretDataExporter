@@ -1,12 +1,18 @@
 ﻿@page "/getdata"
 @inject IJSRuntime JsRuntime;
 @inject IConfiguration Configuration
+@inject IHttpContextAccessor _httpContextAccessor
+@inject HttpClient Http
+
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Http
 @using System.Text.Json;
 @using System.Text
 @using System.Text.Json.Serialization;
 @using fatsecret.platform.FatSecretExercise;
 @using fatsecret.platform.FatSecretFood;
 @using fatsecret.platform.FatSecretWeight;
+@using FatSecretWebApp.Models.DBContext;
 
 @using ChartJs.Blazor.Charts
 @using ChartJs.Blazor.ChartJS
@@ -31,6 +37,14 @@
 *@
 @inherits OwningComponentBase<FatSecretDataService>
 <h4>@ErrorMesage</h4>
+
+@if (User.Identity.IsAuthenticated && boolHasAuthToken)
+{
+    <RadzenButton ButtonStyle="ButtonStyle.Warning"
+                  Click="ClearAccessToken" Text="Clear Authorization Token" />
+    <br />
+    <br />
+}
 
 @if ((strRequestToken != "") && (AuthSecret == ""))
 {
@@ -152,6 +166,10 @@
 }
 <br />
 @code {
+    private ClaimsPrincipal User;
+    private string GoogleIdentifier = "";
+    private bool boolHasAuthToken = false;
+
     public string ErrorMesage = "";
     public string ConsumerKey = "";
     public string ConsumerSecret = "";
@@ -160,6 +178,7 @@
     public string AuthCode = "";
     public string AuthToken = "";
     public string response = "";
+    private bool logResult = false;
 
     public string AuthSecret = "";
     public string UserToken = "";
@@ -191,6 +210,30 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Set the user to determine if they are logged in
+        User = _httpContextAccessor.HttpContext.User;
+        if (User.Identity.IsAuthenticated)
+        {
+            GoogleIdentifier = User.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
+            logResult = await @Service.CreateFatSecretLogAsync(new FatSecretLog { GoogleUserName = GoogleIdentifier, LogTexxt = "Logged in" });
+
+            // Try to get their stored authToken
+            var TokenResult = await @Service.GetFatSecretTokenAsync(GoogleIdentifier);
+
+            if (TokenResult != null)
+            {
+                UserToken = TokenResult.FatSecretUserToken;
+                AuthSecret = TokenResult.FatSecretAuthSecret;
+                boolHasAuthToken = true;
+
+                logResult = await @Service.CreateFatSecretLogAsync(new FatSecretLog { GoogleUserName = GoogleIdentifier, LogTexxt = "GetFatSecretTokenAsync returned tokens" });
+            }
+            else
+            {
+                logResult = await @Service.CreateFatSecretLogAsync(new FatSecretLog { GoogleUserName = GoogleIdentifier, LogTexxt = "GetFatSecretTokenAsync returned Null" });
+            }
+        }
+
         ConsumerKey = Configuration["ConsumerKey"];
         ConsumerSecret = Configuration["ConsumerSecret"];
         DateTime.TryParse("1/1/2018", out dtStartDate);
@@ -224,7 +267,7 @@
                 Scales = new Scales
                 {
                     yAxes = new List<CartesianAxis>
-            {
+{
                         new LinearCartesianAxis
                         {
                             ScaleLabel = new ScaleLabel
@@ -234,7 +277,7 @@
                         }
                     },
                     xAxes = new List<CartesianAxis>
-            {
+{
                         new TimeAxis
                         {
                             Distribution = TimeDistribution.Linear,
@@ -286,26 +329,39 @@
         api.GetAuthToken(out strRequestToken, out strOauthTokenSecret);
     }
 
-    void GetAccessToken()
+    async Task ClearAccessToken()
+    {
+        if ((User.Identity.IsAuthenticated) && (boolHasAuthToken))
+        {
+            // Try to get their stored authToken
+            var TokenResult = await @Service.GetFatSecretTokenAsync(GoogleIdentifier);
+            bool result = await @Service.DeleteFatSecretTokenAsync(TokenResult);
+            boolHasAuthToken = false;
+        }
+    }
+
+    async void GetAccessToken()
     {
         ErrorMesage = "Authorizing application...";
+
         try
         {
             // Obtaining an Access Token (after user entered AuthCode by clicked link to Obtain a User Authorization Token)
             // This retuns the *AuthSecret*
             FatSecretAPI api = new FatSecretAPI(ConsumerKey, ConsumerSecret);
             api.GetAccessToken(strOauthTokenSecret, strRequestToken, AuthCode, out UserToken, out AuthSecret);
-            GetProfile();
+            await GetProfile();
         }
         catch (Exception ex)
         {
             ErrorMesage = ErrorMesage + $" Bad code entered!- {ex.GetBaseException().Message}.";
             return;
         }
+
         ErrorMesage = "";
     }
 
-    void GetProfile()
+    async Task GetProfile()
     {
         try
         {
@@ -320,6 +376,20 @@
             objFatSecretProfile.profile.last_weight_date_int = "0";
 
             objFatSecretProfile = JsonSerializer.Deserialize<FatSecretProfile>(response);
+        }
+        catch (Exception ex)
+        {
+            ErrorMesage = ErrorMesage + $"Error: Calling FatSecretProfile - {ex.GetBaseException().Message}" + $" - {response}";
+        }
+
+        try
+        {
+            // If logged in and Token is not saved - - save Access Token
+            if ((User.Identity.IsAuthenticated) && (!boolHasAuthToken))
+            {
+                bool boolTokenCreated = await @Service.CreateFatSecretTokenAsync(new FatSecretToken { GoogleUserName = GoogleIdentifier, FatSecretUserToken = UserToken, FatSecretAuthSecret = AuthSecret });
+                boolHasAuthToken = true;
+            }
         }
         catch (Exception ex)
         {
@@ -396,6 +466,7 @@
         catch (Exception ex)
         {
             ErrorMesage = ex.GetBaseException().Message + $" - {response}";
+            logResult = await @Service.CreateFatSecretLogAsync(new FatSecretLog { GoogleUserName = GoogleIdentifier, LogTexxt = ex.GetBaseException().Message });
         }
     }
 
@@ -462,6 +533,7 @@
         catch (Exception ex)
         {
             ErrorMesage = ex.GetBaseException().Message + $" - {response}";
+            logResult = await @Service.CreateFatSecretLogAsync(new FatSecretLog { GoogleUserName = GoogleIdentifier, LogTexxt = ex.GetBaseException().Message });
         }
     }
 
@@ -539,6 +611,7 @@
         catch (Exception ex)
         {
             ErrorMesage = ex.GetBaseException().Message + $" - {response}";
+            logResult = await @Service.CreateFatSecretLogAsync(new FatSecretLog { GoogleUserName = GoogleIdentifier, LogTexxt = ex.GetBaseException().Message });
         }
     }
 
@@ -549,10 +622,13 @@
         string strFinalFileName = $"{FileName}.csv";
 
         byte[] bytes = Encoding.ASCII.GetBytes(data);
+
         await JsRuntime.InvokeVoidAsync(
         "jsFunctions.saveFile",
         strFinalFileName,
         bytes,
         "application/octet-stream");
+
+        logResult = await @Service.CreateFatSecretLogAsync(new FatSecretLog { GoogleUserName = GoogleIdentifier, LogTexxt = $"Exported {strFinalFileName}" });
     }
 }

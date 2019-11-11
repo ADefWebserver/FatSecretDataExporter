@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
+using System;
 
 namespace FatSecretWebApp.Data
 {
@@ -16,13 +17,12 @@ namespace FatSecretWebApp.Data
             _context = context;
         }
 
-        public Task<FatSecretToken> GetFatSecretTokenAsync(string GoogleUserName)
+        public Task<FatSecretToken> GetFatSecretTokenAsync(string GoogleIdentifier)
         {
             FatSecretToken objFatSecretToken = new FatSecretToken();
-            // Get player's DB entry
 
             objFatSecretToken = (from FatSecretToken in _context.FatSecretToken
-                                 where FatSecretToken.GoogleUserName == GoogleUserName
+                                 where FatSecretToken.GoogleUserName == GoogleIdentifier
                                  select FatSecretToken).FirstOrDefault();
 
             return Task.FromResult(objFatSecretToken);
@@ -30,6 +30,8 @@ namespace FatSecretWebApp.Data
 
         public Task<bool> CreateFatSecretTokenAsync(FatSecretToken objFatSecretToken)
         {
+            objFatSecretToken.TimeStamp = DateTime.Now;
+
             _context.FatSecretToken.Add(objFatSecretToken);
             _context.SaveChanges();
 
@@ -58,6 +60,8 @@ namespace FatSecretWebApp.Data
 
         public Task<bool> CreateFatSecretLogAsync(FatSecretLog objFatSecretLog)
         {
+            objFatSecretLog.TimeStamp = DateTime.Now;
+
             _context.FatSecretLog.Add(objFatSecretLog);
             _context.SaveChanges();
 
