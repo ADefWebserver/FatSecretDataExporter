@@ -19,6 +19,17 @@
 @using ChartJs.Blazor.ChartJS.LineChart
 @using ChartJs.Blazor.Util
 
+@using FatSecretWebApp.Data;
+@*
+    Using OwningComponentBase ensures that the service and related services
+    that share its scope are disposed with the component.
+    Otherwise DbContext in FatSecretDataService will live for the life of the
+    connection, which may be problematic if clients stay
+    connected for a long time.
+
+    We access FatSecretDataService using @Service
+*@
+@inherits OwningComponentBase<FatSecretDataService>
 <h4>@ErrorMesage</h4>
 
 @if ((strRequestToken != "") && (AuthSecret == ""))
@@ -213,7 +224,7 @@
                 Scales = new Scales
                 {
                     yAxes = new List<CartesianAxis>
-                    {
+            {
                         new LinearCartesianAxis
                         {
                             ScaleLabel = new ScaleLabel
@@ -223,7 +234,7 @@
                         }
                     },
                     xAxes = new List<CartesianAxis>
-                    {
+            {
                         new TimeAxis
                         {
                             Distribution = TimeDistribution.Linear,

@@ -1,0 +1,45 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FatSecretLog]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[FatSecretLog](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[LogTexxt] [nvarchar](max) NOT NULL,
+	[GoogleUserName] [nvarchar](200) NULL,
+	[TimeStamp] [datetime] NOT NULL,
+ CONSTRAINT [PK_FatSecretLog] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+END
+GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FatSecretToken]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[FatSecretToken](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[GoogleUserName] [nvarchar](200) NOT NULL,
+	[FatSecretUserToken] [nvarchar](500) NOT NULL,
+	[FatSecretAuthSecret] [nvarchar](500) NOT NULL,
+	[TimeStamp] [datetime] NOT NULL,
+ CONSTRAINT [PK_FatSecretToken] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+SET ANSI_PADDING ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[FatSecretToken]') AND name = N'IX_FatSecretTokenGoogleUserName')
+CREATE NONCLUSTERED INDEX [IX_FatSecretTokenGoogleUserName] ON [dbo].[FatSecretToken]
+(
+	[GoogleUserName] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+GO

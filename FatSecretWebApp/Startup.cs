@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FatSecretWebApp.Data;
+using FatSecretWebApp.Models.DBContext;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,9 +28,13 @@ namespace FatSecretWebApp
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<FatSecretDataExporterContext>(options => 
+            options.UseSqlServer(Configuration["FatSecretDataExporter:DefaultConnection"]));
+
             services.AddRazorPages();
             services.AddServerSideBlazor()
                 .AddCircuitOptions(options => { options.DetailedErrors = true; });
+            services.AddScoped<FatSecretDataService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
