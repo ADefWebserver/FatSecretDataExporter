@@ -3,8 +3,10 @@
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
+# Trigger was chnaged from 'master' to 'none' to prevent this from 
+# messing with the GitHub Actions that we are working on...
 trigger:
-- master
+- none
 
 pool:
   vmImage: 'windows-latest'
