@@ -14,3 +14,5 @@ This is a **Microsoft Server Side Blazor** application written in **[.NET Core 3
 Created by [Michael Washington](https://twitter.com/ADefWebserver) of the [Blazor Help Website](https://BlazorHelpWebsite.com/)
 
 This Application uses controls by [https://razor.radzen.com/get-started](https://razor.radzen.com/get-started)
+
+[Releases](https://github.com/ADefWebserver/FatSecretDataExporter/releases/)
