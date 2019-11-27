@@ -1,17 +1,20 @@
-name: .NET Core
+name: Deplploy To Azure
 
 on: [push]
 
 jobs:
-  build:
-
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
+
+    # checkout the repo
+    - uses: actions/checkout@master
+    
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.0.100 # Replace with specific dotnet core version
+
     
     # dotnet build and publish
     - name: Build with dotnet
