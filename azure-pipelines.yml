@@ -34,4 +34,4 @@ steps:
     azureSubscription: '$(azureSubscription)'
     appType: 'webApp'
     WebAppName: 'FatSecret'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
