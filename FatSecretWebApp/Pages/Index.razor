@@ -1,14 +1,15 @@
 ﻿@page "/"
-    <div>
-        <h2>
-            This application allows you to download your data from <a target="_blank" href="https://www.fatsecret.com/">
-                <u>FatSecret.com</u>
-            </a>
-        </h2>
-        <h4>(An account on FatSecret.com is required to use this application)</h4>
-        <h3>(This only works from a desktop web browser - not a mobile device with the FatSecret app)</h3>
-        <h3>(This site only works with Microsoft Edge, Mozilla Firefox, Google Chrome, and Safari)</h3>
-    </div>
+<div>
+    <h2>
+        This application allows you to download your data from <a target="_blank" href="https://www.fatsecret.com/">
+            <u>FatSecret.com</u>
+        </a>
+    </h2>
+    <br />
+    <h4>(An account on FatSecret.com is required to use this application)</h4>
+    <h3>(This only works from a desktop web browser - not a mobile device with the FatSecret app)</h3>
+    <h3>(This site only works with Microsoft Edge, Mozilla Firefox, Google Chrome, and Safari)</h3>
+</div>
 <br />
 <div>
     <h4>
@@ -30,3 +31,15 @@
         <u>https://razor.radzen.com/get-started</u>
     </a>
 </div>
+<br />
+<br />
+<div>
+    <h6><b>Version:</b> @dtCurrentDate</h6>
+</div>
+@code {
+    private DateTime dtCurrentDate;
+    protected override async Task OnInitializedAsync()
+    {
+        dtCurrentDate = DateTime.Now;
+    }
+}
