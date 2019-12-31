@@ -1,4 +1,6 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">FatSecret Data Exporter</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -27,10 +29,27 @@
                 <span class="oi oi-dashboard" aria-hidden="true"></span> Issues
             </NavLink>
         </li>
-    </ul>    
+        <li class="nav-item px-3">
+            <AuthorizeView>
+                <Authorized>
+                    <NavLink class="nav-link" href="/Logout">
+                        <span class="oi oi-account-logout" aria-hidden="true"></span> [Log out]
+                    </NavLink>
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink class="nav-link" href="/Login">
+                        <span class="oi oi-account-login" aria-hidden="true"></span> [Log in]
+                    </NavLink>
+                </NotAuthorized>
+            </AuthorizeView>
+        </li>
+    </ul>
 </div>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
     bool collapseNavMenu = true;
 
     string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
