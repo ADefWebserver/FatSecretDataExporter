@@ -2,13 +2,13 @@ name: Deplploy To Azure
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
     # checkout the repo
-    - uses: actions/checkout@master
+    - uses: actions/checkout@main
     
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
