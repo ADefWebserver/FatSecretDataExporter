@@ -8,7 +8,7 @@ This is a **Microsoft Server Side Blazor** application written in **[.NET Core 3
 
 **Note:** To run the source code, this requires *ConsumerKey* and *ConsumerSecret* API keys that can be obtained at [platform.fatsecret.com/api/](https://platform.fatsecret.com/api/Default.aspx?screen=r)
 #
-![FatSecret Animation](https://github.com/ADefWebserver/FatSecretDataExporter/blob/master/FatSecret-1-small.gif?raw=true "FatSecret Animation")
+![FatSecret Animation](https://github.com/ADefWebserver/FatSecretDataExporter/blob/main/FatSecret-1-small.gif?raw=true "FatSecret Animation")
 #
 ### About
 Created by [Michael Washington](https://twitter.com/ADefWebserver) of the [Blazor Help Website](https://BlazorHelpWebsite.com/)
