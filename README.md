@@ -1,4 +1,4 @@
-![FatSecret Data Exporter](https://github.com/ADefWebserver/FatSecretDataExporter/blob/master/FatSecretScreenShot.png?raw=true "FatSecret Data Exporter")
+![FatSecret Data Exporter](https://github.com/ADefWebserver/FatSecretDataExporter/blob/main/FatSecretScreenShot.png?raw=true "FatSecret Data Exporter")
 # FatSecret Data Exporter
 Allows users of FatSecret.com to export their data
 
