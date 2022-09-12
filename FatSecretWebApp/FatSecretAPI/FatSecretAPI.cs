@@ -10,7 +10,7 @@ using System.Xml;
 
 namespace fatsecret.platform{
 	public class FatSecretAPI{
-		public const string URL_BASE = "http://platform.fatsecret.com/rest/server.api?";
+		public const string URL_BASE = "https://platform.fatsecret.com/rest/server.api?";
 
 		#region Private Data
 

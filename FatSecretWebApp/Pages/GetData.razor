@@ -41,7 +41,7 @@
 @if (User.Identity.IsAuthenticated && boolHasAuthToken)
 {
     <RadzenButton ButtonStyle="ButtonStyle.Warning"
-                  Click="ClearAccessToken" Text="Clear Authorization Token" />
+              Click="ClearAccessToken" Text="Clear Authorization Token" />
     <br />
     <br />
 }
@@ -57,7 +57,7 @@
 
     <input placeholder="Enter Auth Code" @bind="AuthCode" />
     <RadzenButton ButtonStyle="ButtonStyle.Success"
-                  Click="GetAccessToken" Text="Authorize Application" />
+              Click="GetAccessToken" Text="Authorize Application" />
 }
 @if (objFatSecretProfile != null)
 {
@@ -83,11 +83,15 @@
                 @if (ShowGetWeightButton)
                 {
                     <RadzenButton ButtonStyle="ButtonStyle.Secondary"
-                                  Click="GetWeight" Text="Get Weight  (click once and wait)" /><br /><br />
+                          Click="GetWeight" Text="Get Weight  (click once and wait)" />
+
+                    <br />
+
+                    <br />
                 }
                 <ChartJsLineChart @ref="_lineChartJs" Config="@_lineConfig" Width="100" Height="50" />
                 <RadzenGrid AllowFiltering="true" AllowPaging="true" PageSize="12" AllowSorting="true"
-                            Data="colFatSecretWeightOutput" TItem="FatSecretWeightOutput" ColumnWidth="200px">
+                        Data="colFatSecretWeightOutput" TItem="FatSecretWeightOutput" ColumnWidth="200px">
                     <Columns>
                         <RadzenGridColumn TItem="FatSecretWeightOutput" Property="Date" Title="Date">
                             <Template Context="data">
@@ -106,10 +110,14 @@
                 @if (ShowGetExerciseButton)
                 {
                     <RadzenButton ButtonStyle="ButtonStyle.Secondary"
-                                  Click="GetExercise" Text="Get Exercise   (click once and wait)" /><br /><br />
+                          Click="GetExercise" Text="Get Exercise   (click once and wait)" />
+
+                    <br />
+
+                    <br />
                 }
                 <RadzenGrid AllowFiltering="true" AllowPaging="true" PageSize="12" AllowSorting="true"
-                            Data="colFatSecretExerciseOutput" TItem="FatSecretExerciseOutput" ColumnWidth="200px">
+                        Data="colFatSecretExerciseOutput" TItem="FatSecretExerciseOutput" ColumnWidth="200px">
                     <Columns>
                         <RadzenGridColumn TItem="FatSecretExerciseOutput" Property="Date" Title="Date">
                             <Template Context="data">
@@ -128,10 +136,14 @@
                 @if (ShowGetFoodButton)
                 {
                     <RadzenButton ButtonStyle="ButtonStyle.Secondary"
-                                  Click="GetFood" Text="Get Food   (click once and wait)" /><br /><br />
+                          Click="GetFood" Text="Get Food   (click once and wait)" />
+
+                    <br />
+
+                    <br />
                 }
                 <RadzenGrid AllowFiltering="true" AllowPaging="true" PageSize="12" AllowSorting="true"
-                            Data="colFatSecretFoodOutput" TItem="FatSecretFoodOutput" ColumnWidth="200px">
+                        Data="colFatSecretFoodOutput" TItem="FatSecretFoodOutput" ColumnWidth="200px">
                     <Columns>
                         <RadzenGridColumn TItem="FatSecretFoodOutput" Property="Date" Title="Date">
                             <Template Context="data">
@@ -246,27 +258,27 @@
 
         // Charting
         _lineConfig = new LineConfig
-        {
-            Options = new LineOptions
             {
-                Responsive = true,
-                Title = new OptionsTitle
+                Options = new LineOptions
                 {
-                    Display = true,
-                    Text = "Weight Chart"
-                },
-                Legend = new Legend
-                {
-                    Display = false
-                },
-                Tooltips = new Tooltips
-                {
-                    Mode = InteractionMode.Nearest,
-                    Intersect = false
-                },
-                Scales = new Scales
-                {
-                    yAxes = new List<CartesianAxis>
+                    Responsive = true,
+                    Title = new OptionsTitle
+                    {
+                        Display = true,
+                        Text = "Weight Chart"
+                    },
+                    Legend = new Legend
+                    {
+                        Display = false
+                    },
+                    Tooltips = new Tooltips
+                    {
+                        Mode = InteractionMode.Nearest,
+                        Intersect = false
+                    },
+                    Scales = new Scales
+                    {
+                        yAxes = new List<CartesianAxis>
 {
                         new LinearCartesianAxis
                         {
@@ -276,7 +288,7 @@
                             }
                         }
                     },
-                    xAxes = new List<CartesianAxis>
+                        xAxes = new List<CartesianAxis>
 {
                         new TimeAxis
                         {
@@ -298,27 +310,27 @@
                             }
                         }
                     }
-                },
-                Hover = new LineOptionsHover
-                {
-                    Intersect = true,
-                    Mode = InteractionMode.Y
+                    },
+                    Hover = new LineOptionsHover
+                    {
+                        Intersect = true,
+                        Mode = InteractionMode.Y
+                    }
                 }
-            }
-        };
+            };
 
         _WeightDataSet = new LineDataset<TimeTuple<int>>
-        {
-            BackgroundColor = ColorUtil.FromDrawingColor(System.Drawing.Color.White),
-            BorderColor = ColorUtil.FromDrawingColor(System.Drawing.Color.Red),
-            Label = "Weight per Day",
-            Fill = false,
-            BorderWidth = 2,
-            PointRadius = 2,
-            PointBorderWidth = 2,
-            SteppedLine = SteppedLine.False,
-            Hidden = false
-        };
+            {
+                BackgroundColor = ColorUtil.FromDrawingColor(System.Drawing.Color.White),
+                BorderColor = ColorUtil.FromDrawingColor(System.Drawing.Color.Red),
+                Label = "Weight per Day",
+                Fill = false,
+                BorderWidth = 2,
+                PointRadius = 2,
+                PointBorderWidth = 2,
+                SteppedLine = SteppedLine.False,
+                Hidden = false
+            };
     }
 
     void GetRequestToken()
@@ -420,17 +432,21 @@
                 {
                     objFatSecretWeight = JsonSerializer.Deserialize<FatSecretWeight>
                         (response);
-                    foreach (var item in objFatSecretWeight.month.day)
-                    {
-                        colFatSecretWeightOutput.Add(new FatSecretWeightOutput
-                        {
-                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
-                            Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(item.weight_kg))
-                        });
 
-                        colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
-                        $"{FatSecretUtility.GetPoundsFromKilos(item.weight_kg)}," +
-                        $"{item.weight_kg}\r\n");
+                    if (objFatSecretWeight.month.day != null)
+                    {
+                        foreach (var item in objFatSecretWeight.month.day)
+                        {
+                            colFatSecretWeightOutput.Add(new FatSecretWeightOutput
+                                {
+                                    Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                                    Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(item.weight_kg))
+                                });
+
+                            colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
+                            $"{FatSecretUtility.GetPoundsFromKilos(item.weight_kg)}," +
+                            $"{item.weight_kg}\r\n");
+                        }
                     }
                 }
                 catch
@@ -440,10 +456,10 @@
                     if (objFatSecretWeightSingle.month.day != null)
                     {
                         colFatSecretWeightOutput.Add(new FatSecretWeightOutput
-                        {
-                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)),
-                            Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretWeightSingle.month.day.weight_kg))
-                        });
+                            {
+                                Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)),
+                                Weight = Convert.ToDouble(FatSecretUtility.GetPoundsFromKilos(objFatSecretWeightSingle.month.day.weight_kg))
+                            });
 
                         colCollection.Add($"" +
                         $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretWeightSingle.month.day.date_int)}," +
@@ -495,15 +511,19 @@
                 {
                     objFatSecretExercise = JsonSerializer.Deserialize<FatSecretExercise>
                         (response);
-                    foreach (var item in objFatSecretExercise.month.day)
-                    {
-                        colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
-                        {
-                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
-                            calories = Convert.ToDouble(item.calories)
-                        });
 
-                        colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)},{item.calories}\r\n");
+                    if (objFatSecretExercise.month.day != null)
+                    {
+                        foreach (var item in objFatSecretExercise.month.day)
+                        {
+                            colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
+                                {
+                                    Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                                    calories = Convert.ToDouble(item.calories)
+                                });
+
+                            colCollection.Add($"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)},{item.calories}\r\n");
+                        }
                     }
                 }
                 catch
@@ -513,10 +533,10 @@
                     if (objFatSecretExerciseSingle.month.day != null)
                     {
                         colFatSecretExerciseOutput.Add(new FatSecretExerciseOutput
-                        {
-                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)),
-                            calories = Convert.ToDouble(objFatSecretExerciseSingle.month.day.calories)
-                        });
+                            {
+                                Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)),
+                                calories = Convert.ToDouble(objFatSecretExerciseSingle.month.day.calories)
+                            });
 
                         colCollection.Add($"" +
                         $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretExerciseSingle.month.day.date_int)}," +
@@ -562,20 +582,24 @@
                 {
                     objFatSecretFood = JsonSerializer.Deserialize<FatSecretFood>
                         (response);
-                    foreach (var item in objFatSecretFood.month.day)
-                    {
-                        colFatSecretFoodOutput.Add(new FatSecretFoodOutput
-                        {
-                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
-                            calories = Convert.ToDouble(item.calories),
-                            carbohydrate = Convert.ToDouble(item.carbohydrate),
-                            fat = Convert.ToDouble(item.fat),
-                            protein = Convert.ToDouble(item.protein)
-                        });
 
-                        colCollection.Add(
-                        $"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
-                        $"{item.calories},{item.carbohydrate},{item.fat},{item.protein}\r\n");
+                    if (objFatSecretFood.month.day != null)
+                    {
+                        foreach (var item in objFatSecretFood.month.day)
+                        {
+                            colFatSecretFoodOutput.Add(new FatSecretFoodOutput
+                                {
+                                    Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(item.date_int)),
+                                    calories = Convert.ToDouble(item.calories),
+                                    carbohydrate = Convert.ToDouble(item.carbohydrate),
+                                    fat = Convert.ToDouble(item.fat),
+                                    protein = Convert.ToDouble(item.protein)
+                                });
+
+                            colCollection.Add(
+                            $"{FatSecretUtility.GetDateFromFatSecretDay(item.date_int)}," +
+                            $"{item.calories},{item.carbohydrate},{item.fat},{item.protein}\r\n");
+                        }
                     }
                 }
                 catch
@@ -585,13 +609,13 @@
                     if (objFatSecretFoodSingle.month.day != null)
                     {
                         colFatSecretFoodOutput.Add(new FatSecretFoodOutput
-                        {
-                            Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)),
-                            calories = Convert.ToDouble(objFatSecretFoodSingle.month.day.calories),
-                            carbohydrate = Convert.ToDouble(objFatSecretFoodSingle.month.day.carbohydrate),
-                            fat = Convert.ToDouble(objFatSecretFoodSingle.month.day.fat),
-                            protein = Convert.ToDouble(objFatSecretFoodSingle.month.day.protein)
-                        });
+                            {
+                                Date = Convert.ToDateTime(FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)),
+                                calories = Convert.ToDouble(objFatSecretFoodSingle.month.day.calories),
+                                carbohydrate = Convert.ToDouble(objFatSecretFoodSingle.month.day.carbohydrate),
+                                fat = Convert.ToDouble(objFatSecretFoodSingle.month.day.fat),
+                                protein = Convert.ToDouble(objFatSecretFoodSingle.month.day.protein)
+                            });
 
                         colCollection.Add($"" +
                         $"{FatSecretUtility.GetDateFromFatSecretDay(objFatSecretFoodSingle.month.day.date_int)}," +
