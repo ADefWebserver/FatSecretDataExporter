@@ -141,7 +141,7 @@ namespace fatsecret.platform{
         #region public void GetAuthToken(out string token, out string oauth_token_secret)
         public void GetAuthToken(out string token, out string oauth_token_secret)
         {
-            string urlBase = "https://www.fatsecret.com/oauth/request_token?";
+            string urlBase = "https://authentication.fatsecret.com/oauth/request_token?";
             urlBase = urlBase + "oauth_callback=oob";
 
             OAuthBase oAuth = new OAuthBase();
@@ -163,7 +163,7 @@ namespace fatsecret.platform{
         #region public void GetAccessToken(string OauthTokenSecret, string oauth_request_token, string oauth_verifier, out string oauth_token, out string oauth_token_secret)
         public void GetAccessToken(string OauthTokenSecret, string oauth_request_token, string oauth_verifier, out string oauth_token, out string oauth_token_secret)
         {
-            string urlBase = "https://www.fatsecret.com/oauth/access_token?";
+            string urlBase = "https://authentication.fatsecret.com/oauth/access_token?";
             urlBase = urlBase + "oauth_token=" + oauth_request_token;
             urlBase = urlBase + "&oauth_verifier=" + oauth_verifier;
 
