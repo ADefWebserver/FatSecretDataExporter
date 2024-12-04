@@ -493,7 +493,12 @@ namespace fatsecret.platform{
 			protected string UrlEncode(string value){
 				StringBuilder result = new StringBuilder();
 
-				foreach(char symbol in value){
+				if(value == null)
+                {
+                    return "";
+                }
+
+                foreach (char symbol in value){
 					if(unreservedChars.IndexOf(symbol) != -1){
 						result.Append(symbol);
 					} 
